@@ -1,5 +1,6 @@
 const sqlite3 = require('sqlite3').verbose(); //verbose is for long stack traces.
 
+let db = 
 const express = require('express');
 const path = require('path')
 

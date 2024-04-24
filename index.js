@@ -1,25 +1,22 @@
 const sqlite3 = require('sqlite3').verbose(); //verbose is for long stack traces.
+var md5 = require('md5'); //for storing passwords
 
-let db = 
 const express = require('express');
-const path = require('path')
-
+const bodyParser = require('body-parser');
 
 const app = express();
+var db = require("./database.js")
 const port = process.argv[3] || 3000;
 
-app.use(express.static(path.join(__dirname, 'public')))
+/* app.use(express.static(path.join(__dirname, 'public')))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs');
+ */
 
-app.get('/', (req, res) => {
-  res.render('index');
-});
+app.use(bodyParser.urlencoded({extended:true}));
+require('./routes/main')(app);
+app.set("views",__dirname+'/views');
+app.set("view engine","ejs");
+app.engine("html",require("ejs").renderFile);
+app.listen(port,()=> console.log(`example app listening on port ${port}`));
 
-app.get('/api', (req, res) => {
-  res.json({"msg": "Hello world"});
-});
- 
-app.listen(port, () => {
-  console.log(`Listening on http://localhost:${port}`);
-})

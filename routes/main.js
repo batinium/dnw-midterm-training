@@ -1,10 +1,16 @@
 module.exports = function (app){
-app.get('/', (req, res) => {
-    res.render('index.html');
-  });
-  
-  app.get('/api', (req, res) => {
-    res.json({"msg": "Hello world"});
-  });
-   
+  app.get("/api/users", (req, res, next) => {
+    var sql = "select * from user"
+    var params = []
+    db.all(sql, params, (err, rows) => {
+        if (err) {
+          res.status(400).json({"error":err.message});
+          return;
+        }
+        res.json({
+            "message":"success",
+            "data":rows
+        })
+      });
+});
 };

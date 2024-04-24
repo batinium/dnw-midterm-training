@@ -5,15 +5,11 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-var db = require("./database.js")
+var db = require("./db/database.js")
 const port = process.argv[3] || 3000;
 
-/* app.use(express.static(path.join(__dirname, 'public')))
-  .set('views', path.join(__dirname, 'views'))
-  .set('view engine', 'ejs');
- */
-
 app.use(bodyParser.urlencoded({extended:true}));
+
 require('./routes/main')(app);
 app.set("views",__dirname+'/views');
 app.set("view engine","ejs");

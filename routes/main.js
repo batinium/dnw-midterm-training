@@ -63,7 +63,7 @@ app.post("/api/user/", (req, res, next) => {
           return;
       }
       res.json({
-          "message": "success",
+          "message": "success new user registered",
           "data": data,
           "id" : this.lastID
       })
@@ -84,11 +84,11 @@ app.patch("/api/user/:id", (req, res, next) => {
       [data.name, data.email, data.password, req.params.id],
       function (err, result) {
           if (err){
-              res.status(400).json({"error": res.message})
+              res.status(400).json({"error during cretion": res.message})
               return;
           }
           res.json({
-              message: "success",
+              message: "success user changes has been made",
               data: data,
               changes: this.changes
           })
@@ -100,10 +100,54 @@ app.delete("/api/user/:id", (req, res, next) => {
       req.params.id,
       function (err, result) {
           if (err){
-              res.status(400).json({"error": res.message})
+              res.status(400).json({"error during update": res.message})
               return;
           }
           res.json({"message":"deleted", changes: this.changes})
+  });
+})
+app.get("/login",(req,res)=>{
+  res.render("login.html");
+})
+
+app.post("/login-user",(req,res)=>{
+  var errors=[]
+  if (!req.body.password){
+      errors.push("No password specified");
+  }
+  if (!req.body.email){
+      errors.push("No email specified");
+  }
+  if (errors.length){
+      res.status(400).json({"error":errors.join(",")});
+      return;
+  }
+
+  var email = req.body.email;
+  var password = md5(req.body.password);
+
+  var sql ='SELECT password FROM user WHERE email =?';
+  var params =[email]
+  db.get(sql, params, function (err, row) {
+      if (err){
+          res.status(400).json({"error": err.message})
+          return;
+      }
+      if(!row){
+        res.status(404).json({"user not found":err.message})
+        return;
+      }
+      if(password === row.password){
+        res.render("logged-in.html", {username: email})
+
+     /*  res.json({
+          "message": "Success you are now logged in",
+          "data": {"email":email}
+      })  */
+
+    } else {
+      res.status(401).json({"error": "incorrect password"});
+    }
   });
 })
 };

@@ -1,15 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="/css/styles.css" />
+    <link rel="stylesheet" type="text/css" href="/css/login.css" />
 </head>
 <body>
-    <h1>Hello world</h1>
-    <ul>
-        <p>Hi brom!</p>
-    </ul>
+    <div class="login-box">
+        <form method="post" action="/login-user">    
+        <div class="login-header">
+            <header>Login</header>
+        </div>
+        <div class="input-box">
+            <input name="email" type="text" class="input-field" placeholder="Email" autocomplete="off" required>
+        </div>
+        <div class="input-box">
+            <input name="password" type="password" class="input-field" placeholder="Password" autocomplete="off" required>
+        </div>
+        <div class="forgot">
+            <section>
+                <input type="checkbox" id="check">
+                <label for="check">Remember Me</label>
+            </section>
+            <section>
+                <a href="#">Forgot Password?</a>
+            </section>
+        </div>
+        <div class="input-submit">
+            <button name="submit" class="submit-btn" id="submit"></button>
+            <label for="submit"> Sign In</label>
+        </div>
+        <div class="sign-up-link">
+            <p>Don't have an account? <a href="/register">Sign Up</a></p>
+        </div>
+    </form>
+</div>
 
-    <form id="register" method="post" action="/api/user">    
+<!--     <form id="register" method="post" action="/api/user">    
         <label><b>Email     
         </b>    
         </label>    
@@ -26,10 +51,11 @@
         <input type="Password" name="confirm" id="confirm" placeholder="Password Repeat">    
         <br><br>      
         <input type="submit" name="submit" id="submit" value="Register">
-    </form> 
+    </form>  -->
 
 </br>
-<form id="delete-user" method="post" action="/api/user/:id">
+
+<!-- <form id="delete-user" method="post" action="/api/user/:id">
     <label>ID to delete</label></b>
     <input type="text" name="id" id="id-to-delete" placeholder=" Ener ID todelete">
     <br><br>
@@ -58,5 +84,5 @@
             alert('Failed to delete user');
         });
     });
-</script>
+</script> -->
 </html>

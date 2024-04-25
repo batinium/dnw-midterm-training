@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+<body>
 <h1> users </h1>    
 <ul>
     <% users.forEach((user)=>{
@@ -13,7 +14,35 @@
         <%
     }) %>
   </ul>
-<body>
-    
+  <form id="delete-user" method="post" action="/api/user/:id">
+    <label>ID to delete</label></b>
+    <input type="text" name="id" id="id-to-delete" placeholder=" Ener ID todelete">
+    <br><br>
+    <input type="submit" value="Delete User">
+</form>
+
+</body>
+<script>
+    document.getElementById('delete-user').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent the normal form submission
+        var userId = document.getElementById('id-to-delete').value;
+        var actionUrl = this.action.replace(':id', userId); // Replace placeholder with actual ID
+        fetch(actionUrl, {
+            method: 'DELETE', // Set method to DELETE
+            headers: {
+              'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+            alert('User deleted successfully');
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('Failed to delete user');
+        });
+    }); 
+</script>    
 </body>
 </html>

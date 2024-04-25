@@ -10,10 +10,6 @@ module.exports = function (app){
           res.status(400).json({"error":err.message});
           return;
         }
-        /* res.json({
-            "message":"success",
-            "data":rows
-        }) */
         res.render("users.html",{users: rows})
       });
 });
@@ -150,5 +146,9 @@ app.post("/login-user",(req,res)=>{
       res.status(401).json({"error": "incorrect password"});
     }
   });
+})
+
+app.get("/dashboard",(req,res)=>{
+  res.render("dashboard.html");
 })
 };

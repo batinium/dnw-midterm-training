@@ -10,10 +10,11 @@ module.exports = function (app){
           res.status(400).json({"error":err.message});
           return;
         }
-        res.json({
+        /* res.json({
             "message":"success",
             "data":rows
-        })
+        }) */
+        res.render("users.html",{users: rows})
       });
 });
 app.get("/api/user/:id", (req, res, next) => {
@@ -41,6 +42,9 @@ app.post("/api/user/", (req, res, next) => {
   }
   if (!req.body.email){
       errors.push("No email specified");
+  }
+  if(req.body.password != req.body.confirm){
+    errors.push("Passwords do not match")
   }
   if (errors.length){
       res.status(400).json({"error":errors.join(",")});

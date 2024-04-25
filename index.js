@@ -8,11 +8,14 @@ const app = express();
 var db = require("./db/database.js")
 const port = process.argv[3] || 3000;
 
-app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.urlencoded({extended:true}))
+    .set("views",__dirname+'/views')
+    .set("view engine","ejs");
 
+    app.engine("html",require("ejs").renderFile);
+    
 require('./routes/main')(app);
-app.set("views",__dirname+'/views');
-app.set("view engine","ejs");
-app.engine("html",require("ejs").renderFile);
-app.listen(port,()=> console.log(`example app listening on port ${port}`));
+
+
+app.listen(port,()=> console.log(`example app listening on http://localhost:${port}`));
 

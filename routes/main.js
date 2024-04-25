@@ -1,3 +1,5 @@
+var db = require("../db/database");
+
 module.exports = function (app){
   app.get("/api/users", (req, res, next) => {
     var sql = "select * from user"
@@ -13,4 +15,7 @@ module.exports = function (app){
         })
       });
 });
+app.get("/",(req,res)=>{
+  res.render('index.html');
+})
 };

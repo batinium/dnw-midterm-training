@@ -1,5 +1,5 @@
 const sqlite3 = require('sqlite3').verbose(); //verbose is for long stack traces.
-var md5 = require('md5'); //for storing passwords
+
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -15,7 +15,7 @@ app.use(bodyParser.urlencoded({extended:true}))
     app.engine("html",require("ejs").renderFile);
     
 require('./routes/main')(app);
-
+app.use(bodyParser.json());
 
 app.listen(port,()=> console.log(`example app listening on http://localhost:${port}`));
 

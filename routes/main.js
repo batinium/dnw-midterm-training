@@ -69,6 +69,7 @@ app.post("/api/user/", (req, res, next) => {
       })
   });
 })
+
 app.patch("/api/user/:id", (req, res, next) => {
   var data = {
       name: req.body.name,
@@ -94,6 +95,7 @@ app.patch("/api/user/:id", (req, res, next) => {
           })
   });
 })
+
 app.delete("/api/user/:id", (req, res, next) => {
   db.run(
       'DELETE FROM user WHERE id = ?',
@@ -106,6 +108,7 @@ app.delete("/api/user/:id", (req, res, next) => {
           res.json({"message":"deleted", changes: this.changes})
   });
 })
+
 app.get("/login",(req,res)=>{
   res.render("login.html");
 })
@@ -139,12 +142,6 @@ app.post("/login-user",(req,res)=>{
       }
       if(password === row.password){
         res.render("logged-in.html", {username: email})
-
-     /*  res.json({
-          "message": "Success you are now logged in",
-          "data": {"email":email}
-      })  */
-
     } else {
       res.status(401).json({"error": "incorrect password"});
     }

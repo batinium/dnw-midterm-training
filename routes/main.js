@@ -141,9 +141,9 @@ app.post("/login-user",(req,res)=>{
           return;
       }
       if(!row){
-        res.status(404).json({"user not found":err.message})
-        return;
-      }
+        res.status(404).json({"error": "User not found"});
+        return; //if an error is null it won't return anything
+    }
       if(password === row.password){
         res.render("logged-in.html", {username: email})
     } else {

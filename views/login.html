@@ -3,24 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=<device-width>, initial-scale=1.0">
-    <title>Document</title>
+        <link rel="stylesheet" type="text/css" href="/css/login.css" />
+        <title>Document</title>
 </head>
 <body>
-    <h1>login page</h1>
-
-    <form id="login" method="post" action="/login-user">    
-        <label><b>Email     
-        </b>    
-        </label>    
-        <input type="text" name="email" id="email" placeholder="Email">    
-        <br><br>    
-        <label><b>Password     
-        </b>    
-        </label>    
-        <input type="Password" name="password" id="password" placeholder="Password">    
-        <br><br>
-   
-        <input type="submit" name="submit" id="submit" value="Login">
-    </form> 
+    <div class="login-box">
+        <form method="post" action="/login-user">    
+        <div class="login-header">
+            <header>Login</header>
+        </div>
+        <div class="input-box">
+            <input name="email" type="text" class="input-field" placeholder="Email" autocomplete="off" required>
+        </div>
+        <div class="input-box">
+            <input name="password" type="password" class="input-field" placeholder="Password" autocomplete="off" required>
+        </div>
+        <div class="forgot">
+            <section>
+                <input type="checkbox" id="check">
+                <label for="check">Remember Me</label>
+            </section>
+            <section>
+                <a href="#">Forgot Password?</a>
+            </section>
+        </div>
+        <div class="input-submit">
+            <button name="submit" class="submit-btn" id="submit"></button>
+            <label for="submit"> Sign In</label>
+        </div>
+        <div class="sign-up-link">
+            <p>Don't have an account? <a href="/register">Sign Up</a></p>
+        </div>
+    </form>
+</div>
 </body>
 </html>
+

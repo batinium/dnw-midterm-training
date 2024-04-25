@@ -4,16 +4,19 @@
     <link rel="stylesheet" type="text/css" href="/css/login.css" />
 </head>
 <body>
-    <div class="login-box">
-        <form method="post" action="/login-user">    
+    <div class="registeration-box">
+        <form id="register" method="post" action="/api/user">    
         <div class="login-header">
-            <header>Login</header>
+            <header>Registeration</header>
         </div>
         <div class="input-box">
             <input name="email" type="text" class="input-field" placeholder="Email" autocomplete="off" required>
         </div>
         <div class="input-box">
             <input name="password" type="password" class="input-field" placeholder="Password" autocomplete="off" required>
+        </div>
+        <div class="input-box">
+            <input name="confirm" type="password" class="input-field" placeholder="Repeat Password" autocomplete="off" required>
         </div>
         <div class="forgot">
             <section>
@@ -29,7 +32,7 @@
             <label for="submit"> Sign In</label>
         </div>
         <div class="sign-up-link">
-            <p>Don't have an account? <a href="/register">Sign Up</a></p>
+            <p>Already have an account? <a href="/login">Login</a></p>
         </div>
     </form>
 </div>
@@ -53,7 +56,6 @@
         <input type="submit" name="submit" id="submit" value="Register">
     </form>  -->
 
-</br>
 
 <!-- <form id="delete-user" method="post" action="/api/user/:id">
     <label>ID to delete</label></b>

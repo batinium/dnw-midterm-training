@@ -3,9 +3,9 @@
     --secondary-color:#9754cb;
     --tetriary-color:#0c58c6;
 
-}
+  }
 
-
+  
 * {
     margin:0;
     padding:0;
@@ -41,6 +41,15 @@ body{
     font-weight: 600;
 }
 
+.registeration-box{
+    display:flex;
+    justify-content: center;
+    flex-direction: column;
+    width:440px;
+    height:480px;
+    padding:30px;
+}
+
 .input-box .input-field {
     width:100%;
     height: 60px;
@@ -64,7 +73,7 @@ body{
 }
 .forgot{
     display:Flex;
-    justify-content: safe;
+    justify-content: space-around;
     margin-bottom: 40px;
 }
 section{

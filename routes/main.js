@@ -35,6 +35,10 @@ app.get("/",(req,res)=>{
   res.render('index.html');
 })
 
+app.get("/register",(req,res)=>{
+  res.render('register.html');
+})
+
 app.post("/api/user/", (req, res, next) => {
   var errors=[]
   if (!req.body.password){

@@ -14,6 +14,7 @@
     extensions = [
       # "vscodevim.vim"
       "alexcvzz.vscode-sqlite"
+      "pkgs.sqlite-interactive.bin"
     ];
     workspace = {
       # Runs when a workspace is first created with this `dev.nix` file

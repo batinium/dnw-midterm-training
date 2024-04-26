@@ -151,4 +151,8 @@ app.post("/login-user",(req,res)=>{
 app.get("/dashboard",(req,res)=>{
   res.render("dashboard.html");
 })
+
+app.get("/post",(req,res)=>{
+  res.render("post.html");
+})
 };

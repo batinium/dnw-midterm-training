@@ -12,7 +12,7 @@
         <% if (posts.length > 0) { %>
             <% posts.forEach(post => { %>
                 <div class="post">
-                    <h2><%= post.username %> posted:</h2>
+                    <h2>Posted: <%= post.username %></h2>
                     <p><%= post.caption %></p>
                     <img src="<%= post.image_url %>" alt="Post Image" style="max-width: 500px;">
                     <p>Location: <%= post.location || 'Not specified' %></p>

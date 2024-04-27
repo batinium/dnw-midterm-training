@@ -39,9 +39,22 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             if (err) {
                 console.log(err.message);
             } else {
-                var insert ='INSERT INTO Users (username,email,password_hash) VALUES(?,?,?)'
-                db.run(insert,["admin","admin@admin.com",md5("admin")]);
-                db.run(insert,["user","user@user.com",md5("user")])
+                console.log("Users table created or already exists.");
+                
+                // Function to insert a new user
+                function insertUser(username, email, password) {
+                    var insert = 'INSERT INTO Users (username, email, password_hash) VALUES (?, ?, ?)';
+                    db.run(insert, [username, email, md5(password)], function(err) {
+                        if (err) {
+                            console.error(`Error inserting user ${username}: ${err.message}`);
+                        } else {
+                            console.log(`User ${username} added with ID: ${this.lastID}`);
+                        }
+                    });
+                }
+                // Inserting initial users
+                insertUser("admin", "admin@admin.com", "admin");
+                insertUser("user", "user@user.com", "user");
             }
         });
 

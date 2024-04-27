@@ -2,10 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=<device-width>, initial-scale=1.0">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Post</title>
 </head>
 <body>
-    <h1> Post </h1>
+    <h1>Submit a New Post</h1>
+    <form action="/api/post/" method="post">
+        <label for="poster_id">Your User ID:</label>
+        <input type="number" id="poster_id" name="poster_id" required><br><br>
+
+        <label for="post_body">Post Content:</label>
+        <textarea id="post_body" name="post_body" required></textarea><br><br>
+
+        <label for="attachment">Attachment (optional):</label>
+        <input type="text" id="attachment" name="attachment"><br><br>
+
+        <button type="submit">Submit Post</button>
+    </form>
 </body>
 </html>

@@ -155,4 +155,38 @@ app.get("/dashboard",(req,res)=>{
 app.get("/post",(req,res)=>{
   res.render("post.html");
 })
+
+app.post("/api/post/", (req, res, next) => {
+  var errors = [];
+  if (!req.body.post_body) {
+      errors.push("No post content specified");
+  }
+  if (!req.body.poster_id) {
+      errors.push("No poster ID specified");
+  }
+  if (errors.length) {
+      res.status(400).json({ "error": errors.join(",") });
+      return;
+  }
+  var data = {
+      poster_id: req.body.poster_id,
+      post_body: req.body.post_body,
+      attachment: req.body.attachment || null  // Optional attachment
+  };
+  var sql = 'INSERT INTO posts (poster_id, post_body, attachment) VALUES (?, ?, ?)';
+  var params = [data.poster_id, data.post_body, data.attachment];
+  db.run(sql, params, function (err, result) {
+      if (err) {
+          res.status(400).json({ "error": err.message });
+          return;
+      }
+      res.json({
+          "message": "Post successfully created",
+          "data": data,
+          "id": this.lastID
+      });
+  });
+});
 };
+
+

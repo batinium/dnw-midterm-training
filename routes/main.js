@@ -32,6 +32,7 @@ app.get("/api/user/:id", (req, res, next) => {
       })
     });
 });
+
 app.get("/",(req,res)=>{
   res.render('index.html');
 })
@@ -56,12 +57,12 @@ app.post("/api/user/", (req, res, next) => {
       return;
   }
   var data = {
-      name: req.body.name,
+      username: req.body.username,
       email: req.body.email,
-      password : md5(req.body.password)
+      password_hash : md5(req.body.password)
   }
-  var sql ='INSERT INTO user (name, email, password) VALUES (?,?,?)'
-  var params =[data.name, data.email, data.password]
+  var sql ='INSERT INTO Users (username, email, password_hash) VALUES (?,?,?)'
+  var params =[data.username, data.email, data.password_hash]
   db.run(sql, params, function (err, result) {
       if (err){
           res.status(400).json({"error": err.message})
@@ -153,9 +154,16 @@ app.post("/login-user",(req,res)=>{
   });
 })
 
-app.get("/dashboard",(req,res)=>{
-  res.render("dashboard.html");
-})
+app.get("/dashboard", async (req, res) => {
+  try {
+      const users = await dbAll("SELECT * FROM Users");
+      const posts = await dbAll("SELECT * FROM Posts");
+      res.render("dashboard.html", { users, posts });
+  } catch (err) {
+      console.error(err);
+      res.status(500).send("Error loading the dashboard");
+  }
+});
 
 app.get("/post",(req,res)=>{
   res.render("post.html");
@@ -264,6 +272,7 @@ app.get("/all-posts",(req,res)=>{
       }
     }); */
     //res.render("all-posts.html",{posts:rows,pagination:{page:page,limit:limit, totalPages: Math.ceil(rows.length/limit)}});
+
     // Process images: copy to public directory
     try {
       Promise.all(rows.map(post => {
@@ -297,8 +306,45 @@ app.get("/all-posts",(req,res)=>{
   });
 });
 
-};
+app.get("/delete-user/:id", async (req, res) => {
+  try {
+      const { id } = req.params;
+      await dbRun("DELETE FROM Users WHERE user_id = ?", [id]);
+      res.redirect("/dashboard");
+  } catch (err) {
+      console.error(err);
+      res.status(500).send("Failed to delete user");
+  }
+});
 
+app.get("/delete-post/:id", async (req, res) => {
+  const postId = req.params.id;
+
+  try {
+      // Retrieve the post to get the image URL
+      const post = await dbGet("SELECT Images.image_url FROM Images WHERE Images.post_id = ?", [postId]);
+      if (post) {
+          // Delete the image file if it exists
+          if (post.image_url) {
+              const imagePath = path.join(__dirname, post.image_url);
+              if (fs.existsSync(imagePath)) {
+                  fs.unlinkSync(imagePath);
+              }
+          }
+          // Delete the post from the database
+          await dbRun("DELETE FROM Posts WHERE post_id = ?", [postId]);
+
+          res.redirect("/dashboard");
+      } else {
+          res.status(404).send("Post not found");
+      }
+  } catch (err) {
+      console.error(err);
+      res.status(500).send("Failed to delete post");
+  }
+});
+
+};
 
 
 function copyFile(source, destination) {
@@ -309,6 +355,33 @@ function copyFile(source, destination) {
               return;
           }
           resolve();
+      });
+  });
+}
+
+function dbGet(sql, params) {
+  return new Promise((resolve, reject) => {
+      db.get(sql, params, (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+      });
+  });
+}
+
+function dbRun(sql, params = []) {
+  return new Promise((resolve, reject) => {
+      db.run(sql, params, function(err) {
+          if (err) reject(err);
+          else resolve(this.lastID);
+      });
+  });
+}
+
+function dbAll(sql, params = []) {
+  return new Promise((resolve, reject) => {
+      db.all(sql, params, (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
       });
   });
 }

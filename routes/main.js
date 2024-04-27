@@ -3,6 +3,7 @@ var db = require("../db/database");
 const fs = require('fs');
 
 const upload = require("../helpers/upload");
+const path = require('path');
 
 module.exports = function (app){
   app.get("/api/users", (req, res, next) => {
@@ -178,20 +179,6 @@ app.post("/api/post/", upload.single('uploaded_image') || upload.none(), (req, r
       res.status(400).json({ "error": errors.join(",") });
       return;
   }
-  
-  // Check if the user_id exists in the Users table
-  const userCheckSql = 'SELECT user_id FROM Users WHERE user_id = ?';
-  db.get(userCheckSql, [req.body.user_id], (err, row) => {
-      if (err) {
-          res.status(500).json({ "error": err.message });
-          return;
-      }
-
-      if (!row) {
-          res.status(404).json({ "error": "User not found" });
-          return;
-      }
-
   const file = req.file;
   if (!file) {
     const error = new Error("Please upload a file");
@@ -206,13 +193,25 @@ app.post("/api/post/", upload.single('uploaded_image') || upload.none(), (req, r
     if(err){
       return res.status(500).send({message:"Could not rename file",error:err});
     }
-    res.send({message:"File uploaded and renamed."});
   })
+
+  // Check if the user_id exists in the Users table
+  const userCheckSql = 'SELECT user_id FROM Users WHERE user_id = ?';
+  db.get(userCheckSql, [req.body.user_id], (err, row) => {
+      if (err) {
+          res.status(500).json({ "error": err.message });
+          return;
+      }
+
+      if (!row) {
+          res.status(404).json({ "error": "User not found" });
+          return;
+      }
 
       const user_id = req.body.user_id;
       const caption = req.body.caption;
       const location = req.body.location || null;
-      const imagePath = req.file.path;  // Correct property to access the file path
+      const imagePath = newPath;  // Correct property to access the file path
   
       const insertPostSql = 'INSERT INTO Posts (user_id, caption, location) VALUES (?, ?, ?)';
       const insertImageSql = 'INSERT INTO Images (post_id, image_url) VALUES (?, ?)';
@@ -238,6 +237,78 @@ app.post("/api/post/", upload.single('uploaded_image') || upload.none(), (req, r
   });
 });
 
+app.get("/all-posts",(req,res)=>{
+  const page =req.query.page ||1;
+  const limit = req.query.limit ||10;
+  const offset = (page -1)* limit;
+
+  const sql =`
+  SELECT Posts.post_id, Posts.user_id, Users.username, Posts.caption, Posts.location, Posts.created_at, Images.image_url
+  FROM Posts
+  LEFT JOIN Users ON Posts.post_id = Users.user_id
+  LEFT JOIN Images ON Posts.post_id = Images.post_id
+  ORDER BY Posts.created_at DESC
+  LIMIT ? OFFSET ?`
+  db.all(sql,[limit,offset],(err,rows)=>{
+    if(err){
+      res.status(500).json({error:err.message});
+      return;
+    }
+    // Update image URLs to be served through the custom route
+    /* res.json({
+      message:"Success",
+      data:rows,
+      pagination:{
+        page:page,
+        limit:limit
+      }
+    }); */
+    //res.render("all-posts.html",{posts:rows,pagination:{page:page,limit:limit, totalPages: Math.ceil(rows.length/limit)}});
+    // Process images: copy to public directory
+    try {
+      Promise.all(rows.map(post => {
+          if (post.image_url) {
+              const sourcePath = path.join(__dirname,"..", post.image_url);
+              const destinationPath = path.join(__dirname, "..",'public', post.image_url);
+
+              // Ensure the destination directory exists
+              const dir = path.dirname(destinationPath);
+              if (!fs.existsSync(dir)) {
+                  fs.mkdirSync(dir, { recursive: true });
+              }
+
+              return copyFile(sourcePath, destinationPath);
+          }
+      }));
+
+      res.render("all-posts.html", {
+          posts: rows,
+          pagination: {
+              page: page,
+              limit: limit,
+              totalPages: Math.ceil(rows.length / limit)
+          }
+      });
+  } catch (copyError) {
+      console.log('Error copying files:', copyError);
+      res.status(500).json({ error: 'Failed to copy some images.' });
+  }
+
+  });
+});
+
 };
 
 
+
+function copyFile(source, destination) {
+  return new Promise((resolve, reject) => {
+      fs.copyFile(source, destination, (err) => {
+          if (err) {
+              reject(err);
+              return;
+          }
+          resolve();
+      });
+  });
+}

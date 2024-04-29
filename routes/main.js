@@ -1,12 +1,13 @@
-var md5 = require('md5'); //for storing passwords
+var bcrypt = require('bcrypt'); //for storing passwords
 var db = require("../db/database");
 const fs = require('fs');
 
 const upload = require("../helpers/upload");
 const path = require('path');
 
-module.exports = function (app){
 
+
+module.exports = function (app){
 
 app.get("/api/user/:id", (req, res, next) => {
   var sql = "select * from Users where user_id = ?"
@@ -46,10 +47,14 @@ app.post("/api/user/", (req, res, next) => {
       res.status(400).json({"error":errors.join(",")});
       return;
   }
+  // Hash the password before storing it in the database
+  const saltRounds = 10;
+  var salt = bcrypt.genSaltSync(saltRounds);
+  var hash = bcrypt.hashSync(req.body.password, salt);
   var data = {
       username: req.body.username,
       email: req.body.email,
-      password_hash : md5(req.body.password)
+      password_hash : hash
   }
   var sql ='INSERT INTO Users (username, email, password_hash) VALUES (?,?,?)'
   var params =[data.username, data.email, data.password_hash]
@@ -67,10 +72,14 @@ app.post("/api/user/", (req, res, next) => {
 })
 
 app.patch("/api/user/:id", (req, res, next) => {
+    const saltRounds = 10;
+    var salt = bcrypt.genSaltSync(saltRounds);
+    var hash = bcrypt.hashSync(req.body.password, salt);
+
   var data = {
       name: req.body.name,
       email: req.body.email,
-      password : req.body.password ? md5(req.body.password) : null
+      password : req.body.password ? hash : null
   }
   db.run(
       `UPDATE Users set 
@@ -111,11 +120,10 @@ app.post("/login-user",(req,res)=>{
   }
 
   var email = req.body.email;
-  var password = md5(req.body.password);
 
   var sql ='SELECT password_hash FROM Users WHERE email =?';
   var params =[email]
-  db.get(sql, params, function (err, row) {
+  db.get(sql, params, async (err, row) => {
       if (err){
           res.status(400).json({"error": err.message})
           return;
@@ -124,10 +132,16 @@ app.post("/login-user",(req,res)=>{
         res.status(404).json({"error": "User not found"});
         return; //if an error is null it won't return anything
     }
-      if(password === row.password){
-        res.render("logged-in.html", {username: email})
-    } else {
-      res.status(401).json({"error": "incorrect password"});
+    try {
+        const match = await bcrypt.compare(req.body.password, row.password_hash);
+        if(match){
+            //res.status(200).json({"pass":req.body.password,"hash":row.password_hash});
+            res.render("logged-in.html", {username: email});
+        }else{
+            res.json({"error":"Incorrect password"})
+        }
+    } catch (compareError) {
+        res.status(500).json({"error": compareError.message});
     }
   });
 })

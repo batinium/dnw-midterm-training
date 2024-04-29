@@ -1,5 +1,6 @@
 var sqlite3 = require('sqlite3').verbose()
-var md5 = require('md5')
+var bcrypt = require('bcrypt')
+
 
 const DBSOURCE = "./db/test.db"
 
@@ -9,25 +10,6 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
       console.error(err.message)
       throw err
     }else{
-        /* console.log('Connected to the SQLite database.')
-        db.run(`CREATE TABLE user (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name text, 
-            email text UNIQUE, 
-            password text, 
-            CONSTRAINT email_unique UNIQUE (email)
-            )`,
-        (err) => {
-            if (err) {
-                // Table already created
-            }else{
-                // Table just created, creating some rows
-                var insert = 'INSERT INTO user (name, email, password) VALUES (?,?,?)'
-                db.run(insert, ["admin","admin@example.com",md5("admin123456")])
-                db.run(insert, ["user","user@example.com",md5("user123456")])
-            }
-        }); */
-
         console.log('Connected to the SQLite database.');
         db.run(`CREATE TABLE IF NOT EXISTS Users (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,10 +23,15 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             } else {
                 console.log("Users table created or already exists.");
                 
+                
                 // Function to insert a new user
                 function insertUser(username, email, password) {
+                    var saltRounds = 10;
+                    var salt = bcrypt.genSaltSync(saltRounds);
+                    var hash = bcrypt.hashSync(password, salt);
+                    
                     var insert = 'INSERT INTO Users (username, email, password_hash) VALUES (?, ?, ?)';
-                    db.run(insert, [username, email, md5(password)], function(err) {
+                    db.run(insert, [username, email, hash], function(err) {
                         if (err) {
                             console.error(`Error inserting user ${username}: ${err.message}`);
                         } else {

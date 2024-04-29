@@ -10,7 +10,7 @@
     <h2>Users</h2>
     <ul>
         <% users.forEach(user => { %>
-            <li>User Id:<%= user.user_id %> - <%= user.username %> - <a href="/edit-user/<%= user.user_id %>">Edit</a> | <a href="/delete-user/<%= user.user_id %>" onclick="return confirm('Are you sure?');">Delete</a></li>
+            <li>User Id:<%= user.user_id %> - <%= user.username %> - <%= user.email %><a href="/edit-user/<%= user.user_id %>">Edit</a> | <a href="/delete-user/<%= user.user_id %>" onclick="return confirm('Are you sure?');">Delete</a></li>
         <% }) %>
     </ul>
     <h2>Posts</h2>

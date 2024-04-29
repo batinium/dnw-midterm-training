@@ -236,17 +236,6 @@ app.get("/all-posts",(req,res)=>{
       res.status(500).json({error:err.message});
       return;
     }
-    // Update image URLs to be served through the custom route
-    /* res.json({
-      message:"Success",
-      data:rows,
-      pagination:{
-        page:page,
-        limit:limit
-      }
-    }); */
-    //res.render("all-posts.html",{posts:rows,pagination:{page:page,limit:limit, totalPages: Math.ceil(rows.length/limit)}});
-
     // Process images: copy to public directory
     try {
       Promise.all(rows.map(post => {

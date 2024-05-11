@@ -72,8 +72,12 @@ module.exports = function (app) {
   });
 
   app.post("/api/users/logout", (req, res) => {
-    //logout end point TO DO
-    res.render("index.html");
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ error: "Failed to logout" });
+      }
+      res.redirect("/");
+    });
   });
 
   app.patch("/api/users/:id/update", (req, res, next) => {
@@ -126,7 +130,8 @@ module.exports = function (app) {
 
     var email = req.body.email;
 
-    var sql = "SELECT password_hash FROM Users WHERE email =?";
+    var sql =
+      "SELECT password_hash, user_id, auth_level FROM Users WHERE email =?";
     var params = [email];
     db.get(sql, params, async (err, row) => {
       if (err) {
@@ -143,8 +148,17 @@ module.exports = function (app) {
           row.password_hash
         );
         if (match) {
-          //res.status(200).json({"pass":req.body.password,"hash":row.password_hash});
-          res.render("logged-in.html", { username: email });
+          req.session.userId = row.user_id;
+          req.session.email = email;
+          req.session.auth_level = row.auth_level;
+          res.status(200).json({
+            //pass: req.body.password,
+            //hash: row.password_hash,
+            auth_level: row.auth_level,
+            sessionid: req.session.userId,
+            email: req.session.email,
+          });
+          //res.render("logged-in.html", { username: email });
         } else {
           res.json({ error: "Incorrect password" });
         }
@@ -154,18 +168,22 @@ module.exports = function (app) {
     });
   });
 
-  app.get("/dashboard", async (req, res) => {
+  app.get("/dashboard", isAuthenticated, async (req, res) => {
     try {
       const users = await dbAll("SELECT * FROM Users");
       const posts = await dbAll("SELECT * FROM Posts");
-      res.render("dashboard.html", { users, posts });
+      res.render("dashboard.html", {
+        users,
+        posts,
+        username: req.session.username,
+      });
     } catch (err) {
       console.error(err);
       res.status(500).send("Error loading the dashboard");
     }
   });
 
-  app.get("/posts/new", (req, res) => {
+  app.get("/posts/new", isAuthenticated, (req, res) => {
     res.render("post.html");
   });
 
@@ -174,7 +192,7 @@ module.exports = function (app) {
     if (!req.body.caption) {
       return res.status(400).json({ error: "No post caption specified" });
     }
-    if (!req.body.user_id) {
+    if (!req.session.userId) {
       return res
         .status(400)
         .json({ error: "Unauthorized access: No user logged in" });
@@ -187,7 +205,7 @@ module.exports = function (app) {
 
     // Check if the user_id exists in the Users table
     const userCheckSql = "SELECT user_id FROM Users WHERE user_id = ?";
-    db.get(userCheckSql, [req.body.user_id], (err, row) => {
+    db.get(userCheckSql, [req.session.userId], (err, row) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
@@ -201,7 +219,7 @@ module.exports = function (app) {
         });
       } else {
         // Proceed to handle the post and image creation
-        const userId = req.body.user_id;
+        const userId = req.session.userId;
         const newPath = `uploads/images/${userId}-${req.file.filename}`;
         fs.rename(req.file.path, newPath, (err) => {
           if (err) {
@@ -374,4 +392,29 @@ function dbAll(sql, params = []) {
       else resolve(rows);
     });
   });
+}
+
+function isAuthenticated(req, res, next) {
+  // Check if the user is logged in at all
+  if (!req.session.userId) {
+    return res.status(401).json({ error: "Unauthorized: Please login" });
+  }
+
+  // Specific logic for dashboard access
+  if (req.path.startsWith("/dashboard")) {
+    // Here we check if the user has a higher authorization level (e.g., admin)
+    if (req.session.auth_level < 1) {
+      // assuming auth_level 1 is required for dashboard
+      return res
+        .status(403)
+        .json({ error: "Forbidden: Insufficient privileges" });
+    }
+  }
+
+  // The route is for creating a new post
+  if (req.path.startsWith("/posts/new") || req.path.startsWith("/api/posts")) {
+    // This could also have specific logic, but here we simply check if the user is logged in,
+    // which we already did at the start of this function.
+  }
+  next();
 }

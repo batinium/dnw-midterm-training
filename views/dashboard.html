@@ -7,6 +7,7 @@
   </head>
   <body>
     <h1>Dashboard</h1>
+    <p>Welcome back <%= username %></p>
     <h2>Users</h2>
     <ul>
       <% users.forEach(user => { %>
@@ -39,5 +40,30 @@
       <% }) %>
     </ul>
     <a href="/register">Add User</a> | <a href="/posts/new">Add Post</a>
+    <br />
+
+    <a href="#" onclick="logoutUser(); return false;">Logout</a>
   </body>
+
+  <script>
+    function logoutUser() {
+      fetch("/api/users/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin", // Important for including session cookies
+      })
+        .then((response) => {
+          if (response.ok) {
+            window.location.href = "/";
+          } else {
+            alert("Logout failed.");
+          }
+        })
+        .catch((error) => {
+          console.error("Error logging out:", error);
+        });
+    }
+  </script>
 </html>

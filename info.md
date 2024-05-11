@@ -3,50 +3,51 @@
 ### **Users Table**
 
 | Field         | Type    | Nullable | Key | Description                  |
-|---------------|---------|----------|-----|------------------------------|
+| ------------- | ------- | -------- | --- | ---------------------------- |
 | user_id       | INTEGER | NO       | PRI | Primary key for user records |
 | username      | TEXT    | NO       | UNI | Unique username              |
 | email         | TEXT    | NO       | UNI | Unique email address         |
+| auth_level    | INTEGER | NO       |     | User authentication level    |
 | password_hash | TEXT    | NO       |     | Hashed password              |
 | created_at    | TEXT    | YES      |     | Record creation time         |
 
 ### **Posts Table**
 
-| Field      | Type    | Nullable | Key | Description                      |
-|------------|---------|----------|-----|----------------------------------|
-| post_id    | INTEGER | NO       | PRI | Primary key for posts            |
-| user_id    | INTEGER | NO       | FOR | Foreign key to Users table       |
-| caption    | TEXT    | YES      |     | Post caption                     |
-| location   | TEXT    | YES      |     | Location of the post             |
-| created_at | TEXT    | YES      |     | Record creation time             |
+| Field      | Type    | Nullable | Key | Description                |
+| ---------- | ------- | -------- | --- | -------------------------- |
+| post_id    | INTEGER | NO       | PRI | Primary key for posts      |
+| user_id    | INTEGER | NO       | FOR | Foreign key to Users table |
+| caption    | TEXT    | YES      |     | Post caption               |
+| location   | TEXT    | YES      |     | Location of the post       |
+| created_at | TEXT    | YES      |     | Record creation time       |
 
 ### **Images Table**
 
-| Field         | Type    | Nullable | Key | Description                      |
-|---------------|---------|----------|-----|----------------------------------|
-| image_id      | INTEGER | NO       | PRI | Primary key for images           |
-| post_id       | INTEGER | NO       | FOR | Foreign key to Posts table       |
-| image_url     | TEXT    | NO       |     | URL of the image                 |
-| thumbnail_url | TEXT    | YES      |     | URL of the thumbnail image       |
+| Field         | Type    | Nullable | Key | Description                |
+| ------------- | ------- | -------- | --- | -------------------------- |
+| image_id      | INTEGER | NO       | PRI | Primary key for images     |
+| post_id       | INTEGER | NO       | FOR | Foreign key to Posts table |
+| image_url     | TEXT    | NO       |     | URL of the image           |
+| thumbnail_url | TEXT    | YES      |     | URL of the thumbnail image |
 
 ### **Comments Table**
 
-| Field      | Type    | Nullable | Key | Description                      |
-|------------|---------|----------|-----|----------------------------------|
-| comment_id | INTEGER | NO       | PRI | Primary key for comments         |
-| post_id    | INTEGER | NO       | FOR | Foreign key to Posts table       |
-| user_id    | INTEGER | NO       | FOR | Foreign key to Users table       |
-| text       | TEXT    | NO       |     | Comment text                     |
-| created_at | TEXT    | YES      |     | Record creation time             |
+| Field      | Type    | Nullable | Key | Description                |
+| ---------- | ------- | -------- | --- | -------------------------- |
+| comment_id | INTEGER | NO       | PRI | Primary key for comments   |
+| post_id    | INTEGER | NO       | FOR | Foreign key to Posts table |
+| user_id    | INTEGER | NO       | FOR | Foreign key to Users table |
+| text       | TEXT    | NO       |     | Comment text               |
+| created_at | TEXT    | YES      |     | Record creation time       |
 
 ### **Likes Table**
 
-| Field      | Type    | Nullable | Key | Description                      |
-|------------|---------|----------|-----|----------------------------------|
-| like_id    | INTEGER | NO       | PRI | Primary key for likes            |
-| post_id    | INTEGER | NO       | FOR | Foreign key to Posts table       |
-| user_id    | INTEGER | NO       | FOR | Foreign key to Users table       |
-| created_at | TEXT    | YES      |     | Time when the like was recorded  |
+| Field      | Type    | Nullable | Key | Description                     |
+| ---------- | ------- | -------- | --- | ------------------------------- |
+| like_id    | INTEGER | NO       | PRI | Primary key for likes           |
+| post_id    | INTEGER | NO       | FOR | Foreign key to Posts table      |
+| user_id    | INTEGER | NO       | FOR | Foreign key to Users table      |
+| created_at | TEXT    | YES      |     | Time when the like was recorded |
 
 ### Relationships
 

@@ -3,6 +3,8 @@ var db = require("../db/database");
 const fs = require("fs");
 
 const upload = require("../helpers/upload");
+const { copyImage } = require("../helpers/imageUtils");
+
 const path = require("path");
 
 module.exports = function (app) {
@@ -158,7 +160,6 @@ module.exports = function (app) {
             sessionid: req.session.userId,
             email: req.session.email,
           });
-          //res.render("logged-in.html", { username: email });
         } else {
           res.json({ error: "Incorrect password" });
         }
@@ -184,77 +185,81 @@ module.exports = function (app) {
   });
 
   app.get("/posts/new", isAuthenticated, (req, res) => {
-    res.render("post.html");
+    res.render("posts-new.html");
   });
 
-  app.post("/api/posts", upload.single("uploaded_image"), (req, res, next) => {
-    // Early checks for request integrity
-    if (!req.body.caption) {
-      return res.status(400).json({ error: "No post caption specified" });
-    }
-    if (!req.session.userId) {
-      return res
-        .status(400)
-        .json({ error: "Unauthorized access: No user logged in" });
-    }
-    if (!req.file) {
-      return res
-        .status(400)
-        .json({ error: "No file uploaded. Please upload an image." });
-    }
-
-    // Check if the user_id exists in the Users table
-    const userCheckSql = "SELECT user_id FROM Users WHERE user_id = ?";
-    db.get(userCheckSql, [req.session.userId], (err, row) => {
-      if (err) {
-        return res.status(500).json({ error: err.message });
+  app.post(
+    "/api/posts/new",
+    upload.single("uploaded_image"),
+    (req, res, next) => {
+      // Early checks for request integrity
+      if (!req.body.caption) {
+        return res.status(400).json({ error: "No post caption specified" });
       }
-      if (!row) {
-        // If user does not exist, delete the uploaded file and return an error
-        fs.unlink(req.file.path, (unlinkErr) => {
-          if (unlinkErr) {
-            console.log("Failed to delete the uploaded file:", unlinkErr);
-          }
-          return res.status(404).json({ error: "User not found" });
-        });
-      } else {
-        // Proceed to handle the post and image creation
-        const userId = req.session.userId;
-        const newPath = `uploads/images/${userId}-${req.file.filename}`;
-        fs.rename(req.file.path, newPath, (err) => {
-          if (err) {
-            return res
-              .status(500)
-              .send({ message: "Could not rename file", error: err });
-          }
-          const caption = req.body.caption;
-          const location = req.body.location || null;
-          const imagePath = newPath;
+      if (!req.session.userId) {
+        return res
+          .status(400)
+          .json({ error: "Unauthorized access: No user logged in" });
+      }
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ error: "No file uploaded. Please upload an image." });
+      }
 
-          const insertPostSql =
-            "INSERT INTO Posts (user_id, caption, location) VALUES (?, ?, ?)";
-          db.run(insertPostSql, [userId, caption, location], function (err) {
-            if (err) {
-              return res.status(400).json({ error: err.message });
+      // Check if the user_id exists in the Users table
+      const userCheckSql = "SELECT user_id FROM Users WHERE user_id = ?";
+      db.get(userCheckSql, [req.session.userId], (err, row) => {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        if (!row) {
+          // If user does not exist, delete the uploaded file and return an error
+          fs.unlink(req.file.path, (unlinkErr) => {
+            if (unlinkErr) {
+              console.log("Failed to delete the uploaded file:", unlinkErr);
             }
-            const postId = this.lastID;
-            const insertImageSql =
-              "INSERT INTO Images (post_id, image_url) VALUES (?, ?)";
-            db.run(insertImageSql, [postId, imagePath], function (err) {
+            return res.status(404).json({ error: "User not found" });
+          });
+        } else {
+          // Proceed to handle the post and image creation
+          const userId = req.session.userId;
+          const newPath = `uploads/images/${userId}-${req.file.filename}`;
+          fs.rename(req.file.path, newPath, (err) => {
+            if (err) {
+              return res
+                .status(500)
+                .send({ message: "Could not rename file", error: err });
+            }
+            const caption = req.body.caption;
+            const location = req.body.location || null;
+            const imagePath = newPath;
+
+            const insertPostSql =
+              "INSERT INTO Posts (user_id, caption, location) VALUES (?, ?, ?)";
+            db.run(insertPostSql, [userId, caption, location], function (err) {
               if (err) {
                 return res.status(400).json({ error: err.message });
               }
-              res.json({
-                message: "Post and Image successfully created",
-                postId: postId,
-                imagePath: imagePath,
+              const postId = this.lastID;
+              const insertImageSql =
+                "INSERT INTO Images (post_id, image_url) VALUES (?, ?)";
+              db.run(insertImageSql, [postId, imagePath], function (err) {
+                if (err) {
+                  return res.status(400).json({ error: err.message });
+                }
+                res.json({
+                  message: "Post and Image successfully created",
+                  postId: postId,
+                  imagePath: imagePath,
+                });
               });
             });
           });
-        });
-      }
-    });
-  });
+        }
+      });
+    }
+  );
 
   // Display all posts
   app.get("/posts/all", (req, res) => {
@@ -263,18 +268,22 @@ module.exports = function (app) {
     const offset = (page - 1) * limit;
 
     const sql = `
-  SELECT Posts.post_id, Posts.user_id, Users.username, Posts.caption, Posts.location, Posts.created_at, Images.image_url FROM Posts LEFT JOIN Users ON Posts.user_id = Users.user_id LEFT JOIN Images ON Posts.post_id = Images.post_id ORDER BY Posts.created_at DESC LIMIT ? OFFSET ?`;
+      SELECT Posts.post_id, Posts.user_id, Users.username, Posts.caption, Posts.location, Posts.created_at, Images.image_url FROM Posts 
+      LEFT JOIN Users ON Posts.user_id = Users.user_id 
+      LEFT JOIN Images ON Posts.post_id = Images.post_id 
+      ORDER BY Posts.created_at DESC LIMIT ? OFFSET ?`;
 
-    db.all(sql, [limit, offset], (err, rows) => {
+    db.all(sql, [limit, offset], async (err, rows) => {
       if (err) {
         res.status(500).json({ error: err.message });
         return;
       }
       // Process images: copy to public directory
       try {
-        Promise.all(
-          rows.map((post) => {
-            if (post.image_url) {
+        await Promise.all(
+          rows
+            .filter((post) => post.image_url)
+            .map((post) => {
               const sourcePath = path.join(__dirname, "..", post.image_url);
               const destinationPath = path.join(
                 __dirname,
@@ -282,24 +291,15 @@ module.exports = function (app) {
                 "public",
                 post.image_url
               );
-
-              // Ensure the destination directory exists
-              const dir = path.dirname(destinationPath);
-              if (!fs.existsSync(dir)) {
-                fs.mkdirSync(dir, { recursive: true });
-              }
-
-              return copyFile(sourcePath, destinationPath);
-            }
-          })
+              return copyImage(sourcePath, destinationPath);
+            })
         );
-
         res.render("all-posts.html", {
           posts: rows,
           pagination: {
             page: page,
             limit: limit,
-            totalPages: Math.ceil(rows.length / limit),
+            totalPages: Math.ceil(rows.length / limit + 1),
           },
         });
       } catch (copyError) {
@@ -307,6 +307,45 @@ module.exports = function (app) {
         res.status(500).json({ error: "Failed to copy some images." });
       }
     });
+  });
+
+  app.get("/posts/:id", async (req, res) => {
+    // First query to get the post details
+    var postSql = "SELECT * FROM Posts WHERE post_id = ?";
+    var imageSql = "SELECT * FROM Images WHERE post_id = ?";
+    var postId = req.params.id;
+
+    const postDetails = await dbGet(postSql, [postId]);
+    const images = await dbAll(imageSql, [postId]);
+
+    if (!postDetails) {
+      return res.status(404).send("Post not found.");
+    }
+    try {
+      await Promise.all(
+        images
+          .filter((image) => image.image_url)
+          .map((image) => {
+            const sourcePath = path.join(__dirname, "..", image.image_url);
+            const destinationPath = path.join(
+              __dirname,
+              "..",
+              "public",
+              image.image_url
+            );
+            return copyFile(sourcePath, destinationPath);
+          })
+      );
+      return (
+        res
+          .status(200)
+          //.json({ post: postDetails, images: images });
+          .render("post.html", { post: postDetails, images: images })
+      );
+    } catch (error) {
+      console.error("Failed to retrieve post details:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   });
 
   app.get("/api/users/:id/delete", async (req, res) => {

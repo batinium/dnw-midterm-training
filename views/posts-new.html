@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Submit Post</title>
+  </head>
+  <body>
+    <h1>Submit a New Post</h1>
+    <form action="/api/posts/new" method="POST" enctype="multipart/form-data">
+      <input
+        type="file"
+        id="upload_photo"
+        name="uploaded_image"
+        accept="image/*"
+        required
+      />
+      <br /><br />
+
+      <label for="caption">Post Content:</label>
+      <textarea id="caption_box" name="caption" required></textarea><br /><br />
+
+      <label for="location">Location (optional):</label>
+      <input type="text" id="location_box" name="location" /><br /><br />
+
+      <!-- Container for uploaded image preview -->
+      <div id="image_preview"></div>
+
+      <button type="submit">Submit Post</button>
+    </form>
+
+    <script>
+      document
+        .getElementById("upload_photo")
+        .addEventListener("change", function (e) {
+          const file = e.target.files[0];
+          if (!file.type.includes("image")) {
+            alert("Please upload only images.");
+            e.target.value = ""; // Reset the file input
+          } else {
+            //display an image preview
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const imagePreview = document.getElementById("image_preview");
+              imagePreview.innerHTML =
+                '<img src="' +
+                e.target.result +
+                '" style="max-width: 100px; height: auto;">'; // Display the image
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+    </script>
+  </body>
+</html>

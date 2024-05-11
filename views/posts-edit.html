@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Post</title>
+  </head>
+  <body>
+    <h1>Edit a Post</h1>
+    <img
+      src="../../<%= post.image_url %>"
+      alt="Post Image"
+      style="max-width: 500px"
+    />
+
+    <form
+      id="updateForm"
+      action="/api/posts/:id/update"
+      method="POST"
+      enctype="multipart/form-data"
+    >
+      <label for="caption">Post Content:</label>
+      <textarea id="caption_box" name="caption" required>
+<%= post.caption %></textarea
+      ><br /><br />
+
+      <label for="location">Location (optional):</label>
+      <input
+        type="text"
+        id="location_box"
+        name="location"
+        value="<%= post.location %>"
+      /><br /><br />
+
+      <input
+        type="file"
+        id="upload_photo"
+        name="uploaded_image"
+        accept="image/*"
+        required
+      /><br /><br />
+      <div id="image_preview"></div>
+
+      <button type="submit">Submit Post</button>
+    </form>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("updateForm");
+        form.addEventListener("submit", function (e) {
+          e.preventDefault(); // Prevent default form submission
+
+          const postId = window.location.pathname.split("/")[2];
+          const formData = new FormData(this);
+          const url = `/api/posts/${postId}/update`; // Correct URL for the PATCH request
+
+          fetch(url, {
+            method: "PATCH",
+            body: formData,
+          })
+            .then((response) => response.json())
+            .catch((error) => {
+              alert("Failed to update post.");
+            });
+          alert("Post updated successfully!");
+
+          window.location.href = `/posts/${postId}`; // Redirect to the updated post
+        });
+
+        document
+          .getElementById("upload_photo")
+          .addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (file && file.type.includes("image")) {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                const imagePreview = document.getElementById("image_preview");
+                imagePreview.innerHTML = `<img src="${e.target.result}" style="max-width: 100px; height: auto;">`; // Display the image
+              };
+              reader.readAsDataURL(file);
+            } else {
+              alert("Please upload only images.");
+              e.target.value = ""; // Reset the file input
+            }
+          });
+      });
+    </script>
+  </body>
+</html>

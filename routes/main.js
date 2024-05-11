@@ -188,6 +188,26 @@ module.exports = function (app) {
     res.render("posts-new.html");
   });
 
+  app.get("/posts/:id/edit", isAuthenticated, async (req, res) => {
+    try {
+      const post = await dbGet(
+        `SELECT Posts.post_id, Posts.user_id, Users.username, Posts.caption, Posts.location, Posts.created_at, Images.image_url FROM Posts 
+      LEFT JOIN Users ON Posts.user_id = Users.user_id 
+      LEFT JOIN Images on Posts.post_id = Images.post_id
+        WHERE Posts.post_id = ?`,
+        [req.params.id]
+      );
+      if (!post) {
+        return res.status(404).send("Post not found");
+      }
+      console.log(post);
+      res.render("posts-edit.html", { post: post });
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Failed to retrieve post");
+    }
+  });
+
   app.post(
     "/api/posts/new",
     upload.single("uploaded_image"),
@@ -347,7 +367,7 @@ module.exports = function (app) {
     });
   });
 
-  app.get("/api/users/:id/delete", async (req, res) => {
+  app.delete("/api/users/:id/delete", async (req, res) => {
     try {
       const { id } = req.params;
       await dbRun("DELETE FROM Users WHERE user_id = ?", [id]);
@@ -358,6 +378,52 @@ module.exports = function (app) {
     }
   });
 
+  app.patch(
+    "/api/posts/:id/update",
+    upload.single("uploaded_image"),
+    async (req, res, next) => {
+      if (!req.body.caption) {
+        return res.status(400).json({ error: "No post caption specified" });
+      }
+      if (!req.session.userId) {
+        return res
+          .status(400)
+          .json({ error: "Unauthorized access: No user logged in" });
+      }
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ error: "No file uploaded. Please upload an image." });
+      }
+
+      const userId = req.session.userId;
+      const postId = req.params.id;
+      const caption = req.body.caption;
+      const location = req.body.location || null;
+      const newPath = `uploads/images/${userId}-${req.file.filename}`;
+
+      try {
+        // Rename and move the file first
+        await fs.promises.rename(req.file.path, newPath);
+
+        // Update the post and image records
+        await db.run(`BEGIN TRANSACTION`);
+        await db.run(
+          `UPDATE Posts SET caption = ?, location = ? WHERE post_id = ?`,
+          [caption, location, postId]
+        );
+        await db.run(`UPDATE Images SET image_url = ? WHERE post_id = ?`, [
+          newPath,
+          postId,
+        ]);
+        await db.run(`COMMIT`);
+      } catch (err) {
+        await db.run(`ROLLBACK`);
+        console.error(err);
+        res.status(500).send("Failed to update post");
+      }
+    }
+  );
   app.get("/api/posts/:id/delete", async (req, res) => {
     const postId = req.params.id;
     try {
@@ -453,6 +519,13 @@ function isAuthenticated(req, res, next) {
   if (req.path.startsWith("/posts/new") || req.path.startsWith("/api/posts")) {
     // This could also have specific logic, but here we simply check if the user is logged in,
     // which we already did at the start of this function.
+  }
+  if (req.path.startsWith("/posts/:id/edit")) {
+    if (req.session.userId != req.params.id) {
+      return res
+        .status(403)
+        .json({ error: "Forbidden: Insufficient privileges" });
+    }
   }
   next();
 }

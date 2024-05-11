@@ -8,7 +8,7 @@ function copyImage(sourcePath, destinationPath) {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true }, (err) => {
         if (err) throw err;
-        console.log("Directory created successfully");
+        //console.log("Directory created successfully");
       });
     }
     fs.copyFile(sourcePath, destinationPath, (err) => {
@@ -16,7 +16,7 @@ function copyImage(sourcePath, destinationPath) {
         console.error("Error copying file", err);
         reject(err);
       } else {
-        console.log("File copied successfully", destinationPath);
+        //console.log("File copied successfully", destinationPath);
         resolve();
       }
     });

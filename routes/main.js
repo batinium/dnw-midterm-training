@@ -309,43 +309,42 @@ module.exports = function (app) {
     });
   });
 
-  app.get("/posts/:id", async (req, res) => {
+  app.get("/posts/:id", (req, res) => {
     // First query to get the post details
-    var postSql = "SELECT * FROM Posts WHERE post_id = ?";
-    var imageSql = "SELECT * FROM Images WHERE post_id = ?";
+    const postAndImageSql = `SELECT Posts.post_id, Posts.user_id, Users.username, Posts.caption, Posts.location, Posts.created_at, Images.image_url FROM Posts 
+    LEFT JOIN Users ON Posts.user_id = Users.user_id 
+    LEFT JOIN Images on Posts.post_id = Images.post_id
+      WHERE Posts.post_id = ?`;
     var postId = req.params.id;
 
-    const postDetails = await dbGet(postSql, [postId]);
-    const images = await dbAll(imageSql, [postId]);
+    db.all(postAndImageSql, [postId], async (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
 
-    if (!postDetails) {
-      return res.status(404).send("Post not found.");
-    }
-    try {
-      await Promise.all(
-        images
-          .filter((image) => image.image_url)
-          .map((image) => {
-            const sourcePath = path.join(__dirname, "..", image.image_url);
-            const destinationPath = path.join(
-              __dirname,
-              "..",
-              "public",
-              image.image_url
-            );
-            return copyFile(sourcePath, destinationPath);
-          })
-      );
-      return (
-        res
-          .status(200)
-          //.json({ post: postDetails, images: images });
-          .render("post.html", { post: postDetails, images: images })
-      );
-    } catch (error) {
-      console.error("Failed to retrieve post details:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
+      // Process images: copy to public directory
+      try {
+        await Promise.all(
+          rows
+            .filter((post) => post.image_url)
+            .map((post) => {
+              const sourcePath = path.join(__dirname, "..", post.image_url);
+              const destinationPath = path.join(
+                __dirname,
+                "..",
+                "public",
+                post.image_url
+              );
+              return copyImage(sourcePath, destinationPath);
+            })
+        );
+        res.status(200).render("post.html", { post: rows[0] });
+      } catch (error) {
+        console.error("Failed to retrieve post details:", error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+    });
   });
 
   app.get("/api/users/:id/delete", async (req, res) => {

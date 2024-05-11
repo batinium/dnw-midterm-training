@@ -7,15 +7,15 @@
     <link rel="stylesheet" type="text/css" href="/css/posts.css" />
   </head>
   <body>
-    <h1>All Posts</h1>
+    <h1>Post</h1>
     <div class="posts-container">
       <% if (post) { %>
       <!-- Checks if the post object exists -->
       <div class="post">
         <h2>Posted: <%= post.username %></h2>
-        <p><%= post.caption %></p>
+        <p>url post <%= post.caption %></p>
         <img
-          src="../<%= images[0].image_url %>"
+          src="../../<%= post.image_url %>"
           alt="Post Image"
           style="max-width: 500px"
         />

@@ -1,33 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>All Posts</title>
-    <link rel="stylesheet" type="text/css" href="/css/posts.css">
-</head>
-<body>
+    <link rel="stylesheet" type="text/css" href="/css/posts.css" />
+  </head>
+  <body>
     <h1>All Posts</h1>
     <div class="posts-container">
-        <% if (posts.length > 0) { %>
-            <% posts.forEach(post => { %>
-                <div class="post">
-                    <h2>Posted: <%= post.username %></h2>
-                    <p><%= post.caption %></p>
-                    <img src="<%= post.image_url %>" alt="Post Image" style="max-width: 500px;">
-                    <p>Location: <%= post.location || 'Not specified' %></p>
-                    <p>Posted on: <%= new Date(post.created_at).toLocaleDateString() %></p>
-                </div>
-            <% }); %>
-        <% } else { %>
-            <p>No posts available.</p>
-        <% } %>
+      <% if (posts.length > 0) { %> <% posts.forEach(post => { %>
+      <div class="post">
+        <h2>Posted: <%= post.username %></h2>
+        <p><%= post.caption %></p>
+        <img
+          src="../../<%= post.image_url %>"
+          alt="Post Image"
+          style="max-width: 500px"
+        />
+        <p>Location: <%= post.location || 'Not specified' %></p>
+        <p>Posted on: <%= new Date(post.created_at).toLocaleDateString() %></p>
+      </div>
+      <% }); %> <% } else { %>
+      <p>No posts available.</p>
+      <% } %>
     </div>
     <!-- Pagination -->
     <div class="pagination">
-        <% for (let i = 1; i <= pagination.totalPages; i++) { %>
-            <a href="/all-posts?page=<%= i %>&limit=<%= pagination.limit %>"><%= i %></a>
-        <% } %>
+      <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+      <a href="/posts/all?page=<%= i %>&limit=<%= pagination.limit %>"
+        ><%= i %></a
+      >
+      <% } %>
     </div>
-</body>
+  </body>
 </html>

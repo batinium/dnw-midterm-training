@@ -3,9 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="/css/styles.css" />
     <title>Submit Post</title>
   </head>
   <body>
+    <%- include('partials/navbar.html', { page: 'Post',isLoggedIn: isLoggedIn,
+    username: username }) %>
     <h1>Submit a New Post</h1>
     <form action="/api/posts/new" method="POST" enctype="multipart/form-data">
       <input
@@ -52,4 +55,5 @@
         });
     </script>
   </body>
+  <script src="/scripts/helper_main.js"></script>
 </html>

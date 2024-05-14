@@ -8,64 +8,8 @@
     <link rel="stylesheet" type="text/css" href="/css/styles.css" />
   </head>
   <body>
-    <div class="navbar-container">
-      <div class="navigation">
-        <ul>
-          <li class="list active">
-            <a href="/">
-              <span class="icon">
-                <img src="../uploads/icons/home-outline.svg" alt="Discover" />
-              </span>
-              <span class="text">Homepage</span></a
-            >
-          </li>
-          <li class="list">
-            <a href="/posts/all">
-              <span class="icon">
-                <img src="../uploads/icons/compass.svg" alt="Discover" />
-              </span>
-              <span class="text">Explore</span></a
-            >
-          </li>
-          <li class="list">
-            <a href="/posts/new">
-              <span class="icon">
-                <img src="../uploads/icons/clipboard.svg" alt="Discover" />
-              </span>
-              <span class="text">Create</span></a
-            >
-          </li>
-          <li class="list">
-            <a href="#">
-              <span class="icon">
-                <img src="../uploads/icons/person.svg" alt="Discover" />
-              </span>
-              <span class="text">Profile</span></a
-            >
-          </li>
-          <li class="list">
-            <a href="#">
-              <span class="icon">
-                <img
-                  src="../uploads/icons/settings-outline.svg"
-                  alt="Discover"
-                />
-              </span>
-              <span class="text">Settings</span></a
-            >
-          </li>
-          <div class="indicator"></div>
-        </ul>
-      </div>
-      <div class="auth-links">
-        <% if (!isLoggedIn) { %>
-        <a href="/login">Login</a>
-        <% } else { %>
-        <h1 class="username"><%= username %></h1>
-        <a href="#" onclick="logoutUser(); return false;">Logout</a>
-        <% } %>
-      </div>
-    </div>
+    <%- include('partials/navbar.html', { page: 'Explore',isLoggedIn:
+    isLoggedIn, username: username }) %>
 
     <div class="posts-container">
       <h1>All Posts</h1>
@@ -94,5 +38,5 @@
       <% } %>
     </div>
   </body>
-  <script src="/scripts/homepage.js"></script>
+  <script src="/scripts/helper_main.js"></script>
 </html>

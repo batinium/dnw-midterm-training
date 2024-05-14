@@ -1,0 +1,56 @@
+<div class="navbar-container">
+  <div class="navigation">
+    <ul>
+      <li class="list <%= page === 'Home' ? 'active' : '' %>">
+        <a href="/">
+          <span class="icon"
+            ><img src="/uploads/icons/home-outline.svg" alt="Homepage"
+          /></span>
+          <span class="text">Homepage</span>
+        </a>
+      </li>
+      <li class="list <%= page === 'Explore' ? 'active' : '' %>">
+        <a href="/posts/all">
+          <span class="icon"
+            ><img src="/uploads/icons/compass.svg" alt="Explore"
+          /></span>
+          <span class="text">Explore</span>
+        </a>
+      </li>
+      <li class="list <%= page === 'Post' ? 'active' : '' %>">
+        <a href="/posts/new">
+          <span class="icon"
+            ><img src="/uploads/icons/clipboard.svg" alt="Create"
+          /></span>
+          <span class="text">Create</span>
+        </a>
+      </li>
+      <li class="list <%= page === 'Profile' ? 'active' : '' %>">
+        <a href="/profile">
+          <span class="icon"
+            ><img src="/uploads/icons/person.svg" alt="Profile"
+          /></span>
+          <span class="text">Profile</span>
+        </a>
+      </li>
+      <li class="list <%= page === 'Settings' ? 'active' : '' %>">
+        <a href="#">
+          <span class="icon"
+            ><img src="/uploads/icons/settings-outline.svg" alt="Settings"
+          /></span>
+          <span class="text">Settings</span>
+        </a>
+      </li>
+      <div class="indicator"></div>
+    </ul>
+  </div>
+  <div class="auth-links">
+    <% if (!isLoggedIn) { %>
+    <a href="/login">Login</a>
+    <a href="/register">Register</a>
+    <% } else { %>
+    <h1 class="username"><%= username %></h1>
+    <a href="#" onclick="logoutUser(); return false;">Logout</a>
+    <% } %>
+  </div>
+</div>

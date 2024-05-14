@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>All Posts</title>
     <link rel="stylesheet" type="text/css" href="/css/posts.css" />
+    <link rel="stylesheet" type="text/css" href="/css/styles.css" />
   </head>
   <body>
+    <%- include('partials/navbar.html', { page: 'Post',isLoggedIn: isLoggedIn,
+    username: username }) %>
+    <!-- Include the navbar partial -->
     <h1>Post</h1>
     <div class="posts-container">
       <% if (post) { %>
@@ -27,4 +31,5 @@
       <% } %>
     </div>
   </body>
+  <script src="/scripts/helper_main.js"></script>
 </html>

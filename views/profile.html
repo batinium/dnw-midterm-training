@@ -1,19 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" type="text/css" href="/css/styles.css" />
-    <title>Home Page</title>
+
+    <title>Document</title>
   </head>
   <body>
     <%- include('partials/navbar.html', { page: 'Home',isLoggedIn: isLoggedIn,
     username: username }) %>
-
-    <div class="home-content">
-      <h1>Welcome to the Homepage</h1>
-      <p>This is the content of the homepage.</p>
-    </div>
   </body>
   <script src="/scripts/helper_main.js"></script>
 </html>

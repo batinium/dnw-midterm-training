@@ -188,7 +188,11 @@ module.exports = function (app) {
   });
 
   app.get("/posts/new", isAuthenticated, (req, res) => {
-    res.render("posts-new.html");
+    const isLoggedIn = req.session.userId ? true : false;
+    res.render("posts-new.html", {
+      username: req.session.username,
+      isLoggedIn,
+    });
   });
 
   app.get("/posts/:id/edit", isAuthenticated, async (req, res) => {
@@ -208,7 +212,12 @@ module.exports = function (app) {
         //if the user is not the owner of the post
         return res.status(403).send("Forbidden: Insufficient privileges");
       }
-      res.render("posts-edit.html", { post: post });
+      const isLoggedIn = req.session.userId ? true : false;
+      res.render("posts-edit.html", {
+        username: req.session.username,
+        isLoggedIn,
+        post: post,
+      });
     } catch (err) {
       console.error(err);
       res.status(500).send("Failed to retrieve post");
@@ -275,11 +284,7 @@ module.exports = function (app) {
                 if (err) {
                   return res.status(400).json({ error: err.message });
                 }
-                res.json({
-                  message: "Post and Image successfully created",
-                  postId: postId,
-                  imagePath: imagePath,
-                });
+                res.redirect(`/posts/${postId}`); //redirect to the post page
               });
             });
           });
@@ -370,7 +375,13 @@ module.exports = function (app) {
               return copyImage(sourcePath, destinationPath);
             })
         );
-        res.status(200).render("post.html", { post: rows[0] });
+        const isLoggedIn = req.session.userId ? true : false;
+
+        res.status(200).render("post.html", {
+          username: req.session.username,
+          isLoggedIn,
+          post: rows[0],
+        });
       } catch (error) {
         console.error("Failed to retrieve post details:", error);
         res.status(500).json({ error: "Internal server error" });
@@ -481,9 +492,60 @@ module.exports = function (app) {
       res.status(500).send("Failed to delete post");
     }
   });
+
+  app.get("/profile/:id", async (req, res) => {
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+    const offset = (page - 1) * limit;
+
+    const sql = `
+      SELECT Posts.post_id, Posts.user_id, Users.username, Posts.caption, Posts.location, Posts.created_at, Images.image_url FROM Posts 
+      LEFT JOIN Users ON Posts.user_id = Users.user_id 
+      LEFT JOIN Images ON Posts.post_id = Images.post_id 
+      WHERE Posts.user_id = ?
+      ORDER BY Posts.created_at DESC LIMIT ? OFFSET ?`;
+
+    db.all(sql, [req.session.userId, limit, offset], async (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      // Process images: copy to public directory
+      try {
+        await Promise.all(
+          rows
+            .filter((post) => post.image_url)
+            .map((post) => {
+              const sourcePath = path.join(__dirname, "..", post.image_url);
+              const destinationPath = path.join(
+                __dirname,
+                "..",
+                "public",
+                post.image_url
+              );
+              return copyImage(sourcePath, destinationPath);
+            })
+        );
+        const isLoggedIn = req.session.userId ? true : false;
+        res.render("profile.html", {
+          username: req.session.username,
+          isLoggedIn,
+          posts: rows,
+          pagination: {
+            page: page,
+            limit: limit,
+            totalPages: Math.ceil(rows.length / limit + 1),
+          },
+        });
+      } catch (copyError) {
+        console.log("Error copying files:", copyError);
+        res.status(500).json({ error: "Failed to copy some images." });
+      }
+    });
+  });
 };
 
-function copyFile(source, destination) {
+/* function copyFile(source, destination) {
   return new Promise((resolve, reject) => {
     fs.copyFile(source, destination, (err) => {
       if (err) {
@@ -493,7 +555,7 @@ function copyFile(source, destination) {
       resolve();
     });
   });
-}
+} */
 
 function dbGet(sql, params) {
   return new Promise((resolve, reject) => {

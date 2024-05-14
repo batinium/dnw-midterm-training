@@ -25,8 +25,11 @@ module.exports = function (app) {
 
   //homepage
   app.get("/", (req, res) => {
-    const isLoggedIn = req.session.userId ? true : false;
-    res.render("index.html", { username: req.session.username, isLoggedIn });
+    res.render("index.html", {
+      username: req.session.username,
+      isLoggedIn: req.session.userId ? true : false,
+      userId: req.session.userId,
+    });
   });
 
   //register page
@@ -188,10 +191,10 @@ module.exports = function (app) {
   });
 
   app.get("/posts/new", isAuthenticated, (req, res) => {
-    const isLoggedIn = req.session.userId ? true : false;
     res.render("posts-new.html", {
       username: req.session.username,
-      isLoggedIn,
+      isLoggedIn: req.session.userId ? true : false,
+      userId: req.session.userId,
     });
   });
 
@@ -212,10 +215,11 @@ module.exports = function (app) {
         //if the user is not the owner of the post
         return res.status(403).send("Forbidden: Insufficient privileges");
       }
-      const isLoggedIn = req.session.userId ? true : false;
+
       res.render("posts-edit.html", {
         username: req.session.username,
-        isLoggedIn,
+        isLoggedIn: req.session.userId ? true : false,
+        userId: req.session.userId,
         post: post,
       });
     } catch (err) {
@@ -326,11 +330,11 @@ module.exports = function (app) {
               return copyImage(sourcePath, destinationPath);
             })
         );
-        const isLoggedIn = req.session.userId ? true : false;
 
         res.render("all-posts.html", {
           username: req.session.username,
-          isLoggedIn,
+          isLoggedIn: req.session.userId ? true : false,
+          userId: req.session.userId,
           posts: rows,
           pagination: {
             page: page,
@@ -375,11 +379,11 @@ module.exports = function (app) {
               return copyImage(sourcePath, destinationPath);
             })
         );
-        const isLoggedIn = req.session.userId ? true : false;
 
         res.status(200).render("post.html", {
           username: req.session.username,
-          isLoggedIn,
+          isLoggedIn: req.session.userId ? true : false,
+          userId: req.session.userId,
           post: rows[0],
         });
       } catch (error) {
@@ -493,7 +497,7 @@ module.exports = function (app) {
     }
   });
 
-  app.get("/profile/:id", async (req, res) => {
+  app.get("/profile/:id", isAuthenticated, async (req, res) => {
     const page = req.query.page || 1;
     const limit = req.query.limit || 10;
     const offset = (page - 1) * limit;
@@ -505,7 +509,7 @@ module.exports = function (app) {
       WHERE Posts.user_id = ?
       ORDER BY Posts.created_at DESC LIMIT ? OFFSET ?`;
 
-    db.all(sql, [req.session.userId, limit, offset], async (err, rows) => {
+    db.all(sql, [req.params.id, limit, offset], async (err, rows) => {
       if (err) {
         res.status(500).json({ error: err.message });
         return;
@@ -526,10 +530,10 @@ module.exports = function (app) {
               return copyImage(sourcePath, destinationPath);
             })
         );
-        const isLoggedIn = req.session.userId ? true : false;
         res.render("profile.html", {
           username: req.session.username,
-          isLoggedIn,
+          isLoggedIn: req.session.userId ? true : false,
+          userId: req.params.id,
           posts: rows,
           pagination: {
             page: page,

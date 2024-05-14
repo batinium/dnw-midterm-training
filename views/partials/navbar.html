@@ -26,13 +26,23 @@
         </a>
       </li>
       <li class="list <%= page === 'Profile' ? 'active' : '' %>">
-        <a href="/profile">
-          <span class="icon"
-            ><img src="/uploads/icons/person.svg" alt="Profile"
-          /></span>
+        <% if (isLoggedIn) { %>
+        <a href="/profile/<%= userId %>">
+          <span class="icon">
+            <img src="/uploads/icons/person.svg" alt="Profile" />
+          </span>
           <span class="text">Profile</span>
         </a>
+        <% } else { %>
+        <a href="/login">
+          <span class="icon">
+            <img src="/uploads/icons/person.svg" alt="Profile" />
+          </span>
+          <span class="text">Profile</span>
+        </a>
+        <% } %>
       </li>
+
       <li class="list <%= page === 'Settings' ? 'active' : '' %>">
         <a href="#">
           <span class="icon"

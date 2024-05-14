@@ -25,7 +25,8 @@ module.exports = function (app) {
 
   //homepage
   app.get("/", (req, res) => {
-    res.render("index.html");
+    const isLoggedIn = req.session.userId ? true : false;
+    res.render("index.html", { username: req.session.username, isLoggedIn });
   });
 
   //register page
@@ -133,7 +134,7 @@ module.exports = function (app) {
     var email = req.body.email;
 
     var sql =
-      "SELECT password_hash, user_id, auth_level FROM Users WHERE email =?";
+      "SELECT password_hash, user_id, auth_level , username FROM Users WHERE email =?";
     var params = [email];
     db.get(sql, params, async (err, row) => {
       if (err) {
@@ -150,16 +151,18 @@ module.exports = function (app) {
           row.password_hash
         );
         if (match) {
+          req.session.username = row.username;
           req.session.userId = row.user_id;
           req.session.email = email;
           req.session.auth_level = row.auth_level;
-          res.status(200).json({
+          res.redirect("/");
+          /* res.status(200).json({
             //pass: req.body.password,
             //hash: row.password_hash,
             auth_level: row.auth_level,
             sessionid: req.session.userId,
             email: req.session.email,
-          });
+          }); */
         } else {
           res.json({ error: "Incorrect password" });
         }
@@ -200,7 +203,11 @@ module.exports = function (app) {
       if (!post) {
         return res.status(404).send("Post not found");
       }
-      console.log(post);
+      if (post.user_id != req.session.userId) {
+        //console.log("Auth Level", req.session.auth_level);
+        //if the user is not the owner of the post
+        return res.status(403).send("Forbidden: Insufficient privileges");
+      }
       res.render("posts-edit.html", { post: post });
     } catch (err) {
       console.error(err);
@@ -314,7 +321,11 @@ module.exports = function (app) {
               return copyImage(sourcePath, destinationPath);
             })
         );
+        const isLoggedIn = req.session.userId ? true : false;
+
         res.render("all-posts.html", {
+          username: req.session.username,
+          isLoggedIn,
           posts: rows,
           pagination: {
             page: page,
@@ -400,14 +411,24 @@ module.exports = function (app) {
       const postId = req.params.id;
       const caption = req.body.caption;
       const location = req.body.location || null;
+      const oldPath = await dbGet(
+        "SELECT image_url FROM Images WHERE post_id = ?",
+        [req.params.id]
+      );
       const newPath = `uploads/images/${userId}-${req.file.filename}`;
 
       try {
+        await db.run(`BEGIN TRANSACTION`);
+        if (oldPath.image_url) {
+          const imagePath = path.join(__dirname, "..", oldPath.image_url);
+          await fs.promises.stat(imagePath); // Ensure file exists
+          await fs.promises.unlink(imagePath); // Remove the old file
+        }
         // Rename and move the file first
         await fs.promises.rename(req.file.path, newPath);
 
         // Update the post and image records
-        await db.run(`BEGIN TRANSACTION`);
+
         await db.run(
           `UPDATE Posts SET caption = ?, location = ? WHERE post_id = ?`,
           [caption, location, postId]
@@ -417,8 +438,11 @@ module.exports = function (app) {
           postId,
         ]);
         await db.run(`COMMIT`);
+        res.status(200).json({ message: "Post updated successfully!" });
       } catch (err) {
-        await db.run(`ROLLBACK`);
+        if (await db.inTransaction) {
+          await db.run(`ROLLBACK`); // Rollback only if a transaction is active
+        }
         console.error(err);
         res.status(500).send("Failed to update post");
       }
@@ -503,7 +527,6 @@ function isAuthenticated(req, res, next) {
   if (!req.session.userId) {
     return res.status(401).json({ error: "Unauthorized: Please login" });
   }
-
   // Specific logic for dashboard access
   if (req.path.startsWith("/dashboard")) {
     // Here we check if the user has a higher authorization level (e.g., admin)
@@ -519,13 +542,6 @@ function isAuthenticated(req, res, next) {
   if (req.path.startsWith("/posts/new") || req.path.startsWith("/api/posts")) {
     // This could also have specific logic, but here we simply check if the user is logged in,
     // which we already did at the start of this function.
-  }
-  if (req.path.startsWith("/posts/:id/edit")) {
-    if (req.session.userId != req.params.id) {
-      return res
-        .status(403)
-        .json({ error: "Forbidden: Insufficient privileges" });
-    }
   }
   next();
 }

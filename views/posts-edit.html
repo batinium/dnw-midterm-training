@@ -52,19 +52,27 @@
 
           const postId = window.location.pathname.split("/")[2];
           const formData = new FormData(this);
-          const url = `/api/posts/${postId}/update`; // Correct URL for the PATCH request
+          const url = `/api/posts/${postId}/update`; //URL for the PATCH request
 
           fetch(url, {
             method: "PATCH",
             body: formData,
           })
-            .then((response) => response.json())
+            .then((response) => {
+              if (response.ok) {
+                alert("Post updated successfully!");
+                window.location.href = `/posts/${postId}`; // Redirect to the updated post
+              } else {
+                response.json().then((data) => {
+                  alert(data.error || "An error occurred. Please try again.");
+                });
+              }
+            })
             .catch((error) => {
-              alert("Failed to update post.");
+              alert(
+                "Failed to reach the server. Please check your internet connection."
+              );
             });
-          alert("Post updated successfully!");
-
-          window.location.href = `/posts/${postId}`; // Redirect to the updated post
         });
 
         document

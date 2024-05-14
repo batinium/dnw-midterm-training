@@ -5,10 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>All Posts</title>
     <link rel="stylesheet" type="text/css" href="/css/posts.css" />
+    <link rel="stylesheet" type="text/css" href="/css/styles.css" />
   </head>
   <body>
-    <h1>All Posts</h1>
+    <div class="navbar-container">
+      <div class="navigation">
+        <ul>
+          <li class="list active">
+            <a href="/">
+              <span class="icon">
+                <img src="../uploads/icons/home-outline.svg" alt="Discover" />
+              </span>
+              <span class="text">Homepage</span></a
+            >
+          </li>
+          <li class="list">
+            <a href="/posts/all">
+              <span class="icon">
+                <img src="../uploads/icons/compass.svg" alt="Discover" />
+              </span>
+              <span class="text">Explore</span></a
+            >
+          </li>
+          <li class="list">
+            <a href="/posts/new">
+              <span class="icon">
+                <img src="../uploads/icons/clipboard.svg" alt="Discover" />
+              </span>
+              <span class="text">Create</span></a
+            >
+          </li>
+          <li class="list">
+            <a href="#">
+              <span class="icon">
+                <img src="../uploads/icons/person.svg" alt="Discover" />
+              </span>
+              <span class="text">Profile</span></a
+            >
+          </li>
+          <li class="list">
+            <a href="#">
+              <span class="icon">
+                <img
+                  src="../uploads/icons/settings-outline.svg"
+                  alt="Discover"
+                />
+              </span>
+              <span class="text">Settings</span></a
+            >
+          </li>
+          <div class="indicator"></div>
+        </ul>
+      </div>
+      <div class="auth-links">
+        <% if (!isLoggedIn) { %>
+        <a href="/login">Login</a>
+        <% } else { %>
+        <h1 class="username"><%= username %></h1>
+        <a href="#" onclick="logoutUser(); return false;">Logout</a>
+        <% } %>
+      </div>
+    </div>
+
     <div class="posts-container">
+      <h1>All Posts</h1>
       <% if (posts.length > 0) { %> <% posts.forEach(post => { %>
       <div class="post">
         <h2>Posted: <%= post.username %></h2>
@@ -34,4 +94,5 @@
       <% } %>
     </div>
   </body>
+  <script src="/scripts/homepage.js"></script>
 </html>
